@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<style>
+    :root{
+        --color-note: 172;
+        --bg-headline: hsl(var(--color-note), 100%, 14%);
+        --text-headine: hsl(var(--color-note), 100%, 97%);
+        --bg-cell: hsl(var(--color-note), 100%, 64%);
+        --bg-cell-odd: hsl(var(--color-note), 50%, 64%);
+        --text-cell: hsl(var(--color-note), 100%, 14%);    
+    }
+    .container{
+        display: grid;
+        background-color: var(--bg-cell);
+        color: var(--text-cell);
+    }
+    .columnHeader{
+        background-color: var(--bg-headline);
+        color: var(--text-headine);
+        font-size: 1.3em;
+    }
+    .oddRow{
+        background-color: var(--bg-cell-odd);
+    }
+
+    .alignRight{
+        text-align: right;
+    }
+    #searchBox{
+        width: calc(100% - 1em);
+        margin: 0.5em 0 0.5em 0;
+        padding: 0.5em;
+        border-radius: 999px;
+        border-color: var(--text-cell);
+    }
+</style>
+</head>
+<body>
+    <h1>Search in Mondial!</h1>
+    <form onsubmit="dontSubmit(event)">
+        <input type="text" name="searchbox" id="searchBox" placeholder="Stadt Suche nach Name..." onkeyup="liveSearch()">
+    </form>
+    <div id="result"></div>
+    <script>
+function dontSubmit(e){
+    e.preventDefault()
+}
+
+async function liveSearch(event){
+    let searchBox = document.getElementById('searchBox')
+    let resultElement = document.getElementById('result')
+    const responseText = await fetch("/api/city?name=" + searchBox.value)
+    const response = await responseText.json()
+    if (response == undefined ||
+        response.rows == undefined || 
+        response.rows.length == 0){
+        createErrorMessage(resultElement, 'Keine Stadt wurde mit der entsprechenden Name gefunden.')
+    } else {
+        createTableResult(resultElement, response.header, response.rows)
+    }
+}
+
+function createErrorMessage(parentElement, message){
+    let errorMessage = document.createElement('div')
+        errorMessage.classList.add('errorMessage')
+        errorMessage.innerText = message
+        
+        parentElement.innerHTML =''
+        parentElement.appendChild(errorMessage)
+}
+
+function createTableResult(parentElement, header, rows){
+    let gridContainer = document.createElement('div')
+    gridContainer.classList.add('container')
+    gridContainer.style.gridTemplateColumns = ' repeat(' + header.length + ', auto)'
+    
+    let coHeadIndex = 0
+    header.forEach(column => {
+        let colHeader = document.createElement('div')
+        colHeader.classList.add('columnHeader')
+        if (column.type < 32){
+            colHeader.classList.add('alignRight')
+        }
+        colHeader.innerText = column.name
+        gridContainer.appendChild(colHeader)
+        ++colHeadIndex;
+    });
+
+    let rowIndex = 0
+    rows.forEach((currentRow) => {
+        let colIndex = 0
+        for (const property in currentRow) {
+            let cellElement = document.createElement('div')
+            cellElement.classList.add('tableContent')
+            if (header[colIndex].type < 32){
+                cellElement.classList.add('alignRight')
+            }
+            if (rowIndex % 2 != 0){
+                cellElement.classList.add('oddRow')
+            }
+            cellElement.innerText = currentRow[property]
+            gridContainer.appendChild(cellElement)
+            ++colIndex
+        }
+        ++rowIndex
+    })
+    
+    parentElement.innerHTML = ''
+    parentElement.appendChild(gridContainer)
+}
+    </script>
+</body>
+</html>
