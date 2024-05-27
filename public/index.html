@@ -78,7 +78,6 @@ function createTableResult(parentElement, header, rows){
     gridContainer.classList.add('container')
     gridContainer.style.gridTemplateColumns = ' repeat(' + header.length + ', auto)'
     
-    let coHeadIndex = 0
     header.forEach(column => {
         let colHeader = document.createElement('div')
         colHeader.classList.add('columnHeader')
@@ -87,7 +86,6 @@ function createTableResult(parentElement, header, rows){
         }
         colHeader.innerText = column.name
         gridContainer.appendChild(colHeader)
-        ++colHeadIndex;
     });
 
     let rowIndex = 0
